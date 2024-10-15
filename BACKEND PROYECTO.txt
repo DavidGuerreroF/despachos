@@ -1,0 +1,144 @@
+MODELO DE CLIENTE
+
+public class Cliente {
+    private int id;
+    private String nombre;
+    private String telefono;
+
+    // Constructor, getters y setters
+}
+
+MODELO DE DESPACHADOR
+
+public class Despachador {
+    private int id;
+    private String nombre;
+    private String telefono;
+
+    // Constructor, getters y setters
+}
+
+MODELO DE PEDIDO
+
+import java.util.List;
+
+public class Pedido {
+    private int id;
+    private int clienteId;
+    private List<String> detalles; // Podrías usar un objeto más complejo para los detalles
+    private boolean enviado;
+
+    // Constructor, getters y setters
+}
+
+
+
+
+
+
+SERVICIO PARA MANEJO DE PEDIDOS: 
+
+public class PedidoService {
+    private PedidoDAO pedidoDAO;
+    private DespachadorDAO despachadorDAO;
+
+    public PedidoService(PedidoDAO pedidoDAO, DespachadorDAO despachadorDAO) {
+        this.pedidoDAO = pedidoDAO;
+        this.despachadorDAO = despachadorDAO;
+    }
+
+    public void crearPedido(Pedido pedido) {
+        // Lógica para crear el pedido y enviar el mensaje
+        pedidoDAO.crearPedido(pedido);
+        enviarMensajeDespachador(pedido);
+    }
+
+    private void enviarMensajeDespachador(Pedido pedido) {
+        // Lógica para enviar el mensaje de texto
+    }
+}
+
+BASE DE DATOS (FIREBASE)
+
+En el POM.XML
+<dependency>
+    <groupId>com.google.firebase</groupId>
+    <artifactId>firebase-admin</artifactId>
+    <version>9.0.0</version>
+</dependency>
+
+ASI FUNCIONARIA:
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.WriteResult;
+import com.google.auth.oauth2.GoogleCredentials;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class FirebaseExample {
+    private Firestore db;
+
+    public FirebaseExample() throws IOException {
+        // Inicializa Firebase
+        FileInputStream serviceAccount = new FileInputStream("path/to/your/serviceAccountKey.json");
+
+        GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
+        FirestoreOptions options = FirestoreOptions.getDefaultInstance().toBuilder()
+                .setCredentials(credentials)
+                .build();
+
+        db = options.getService();
+    }
+
+    public void agregarCliente(String id, String nombre, String telefono) throws Exception {
+        Map<String, Object> cliente = new HashMap<>();
+        cliente.put("nombre", nombre);
+        cliente.put("telefono", telefono);
+
+        DocumentReference docRef = db.collection("clientes").document(id);
+        ApiFuture<WriteResult> result = docRef.set(cliente);
+        System.out.println("Cliente agregado: " + result.get().getUpdateTime());
+    }
+
+    public static void main(String[] args) {
+        try {
+            FirebaseExample firebaseExample = new FirebaseExample();
+            firebaseExample.agregarCliente("cliente1", "Juan Pérez", "123456789");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+MENSAJERIA: TWILIO
+
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
+
+public class TwilioExample {
+    // Tu Account SID y Auth Token
+    public static final String ACCOUNT_SID = "TU_ACCOUNT_SID";
+    public static final String AUTH_TOKEN = "TU_AUTH_TOKEN";
+
+    public static void main(String[] args) {
+        // Inicializa Twilio
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+
+        // Envía el mensaje
+        Message message = Message.creator(
+                new PhoneNumber("DESTINATARIO"), // Número de teléfono del destinatario
+                new PhoneNumber("TU_NUMERO_TWILIO"), // Tu número de Twilio
+                "Hola, este es un mensaje enviado desde Twilio!")
+                .create();
+
+        System.out.println("Mensaje enviado con SID: " + message.getSid());
+    }
+}
+
+
